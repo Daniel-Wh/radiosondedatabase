@@ -30,8 +30,9 @@ def create_tables():
     new_date = ""
     x = 0
     while x < len(df['height']):
-        date = df['time'][x].astype(str)
-        date.replace("-", "")
+        date = df['date'][x].strftime("%y%m%d")
+        if date != new_date:
+            new_date = date
         new_station = StationData(new_date, 1, int(df['height'][x]), df['temperature'][x], 1)
         new_station.save_to_db()
         x += 1
