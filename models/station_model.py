@@ -31,14 +31,16 @@ class StationData(db.Model):
     oni = db.Column(db.INTEGER)
     height = db.Column(db.INTEGER)
     temp = db.Column(db.REAL)
+    time = db.Column(db.INTEGER)
     station_id = db.Column(db.INTEGER, ForeignKey('stations.id'))
     station = db.relationship('StationModel')
 
-    def __init__(self, date, oni, height, temp, station_id):
+    def __init__(self, date, oni, height, temp, time, station_id):
         self.date = date
         self.oni = oni
         self.height = height
         self.temp = temp
+        self.time = time
         self.station_id = station_id
 
     def save_to_db(self):
