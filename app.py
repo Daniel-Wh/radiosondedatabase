@@ -20,23 +20,32 @@ def create_tables():
     from siphon.simplewebservice.igra2 import IGRAUpperAir
     from models.station_model import StationData, StationModel
 
-    beginning = [datetime(2014, 10, 11), datetime(2014, 10, 21)]
+    beginning = [datetime(2013, 10, 11), datetime(2014, 10, 11)]
     station = 'USM00072250'
 
     df, header = IGRAUpperAir.request_data(beginning, station)
 
-    new_date = ""
     x = 0
     station = StationModel(station, header['latitude'][0], header['longitude'][0])
     station.save_to_db()
     test = df.notnull()
+    month = ""
+    y = 0
     while x < len(df['height']):
-        date = df['date'][x].strftime("%Y%m%d")
+        year = df['date'][x].strftime("%Y")
+        month = df['date'][x].strftime("%m")
+        day = df['date'][x].strftime("%d")
         time = df['date'][x].strftime("%H")
-        if date != new_date:
-            new_date = date
+
         if test['temperature'][x]:
-            station_data = StationData(new_date, 1, int(df['height'][x]), df['temperature'][x], int(time), 1)
+            station_data = StationData(int(year),
+                                       int(month),
+                                       int(day),
+                                       1,
+                                       int(df['height'][x]),
+                                       df['temperature'][x],
+                                       int(time),
+                                       1)
             station_data.save_to_db()
         x += 1
 

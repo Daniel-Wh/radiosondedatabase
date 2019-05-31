@@ -27,7 +27,9 @@ class StationData(db.Model):
     __tablename__ = 'station_data'
 
     id = db.Column(db.INTEGER, primary_key=True)
-    date = db.Column(db.INTEGER)
+    year = db.Column(db.INTEGER)
+    month = db.Column(db.INTEGER)
+    day = db.Column(db.INTEGER)
     oni = db.Column(db.INTEGER)
     height = db.Column(db.INTEGER)
     temp = db.Column(db.REAL)
@@ -35,8 +37,10 @@ class StationData(db.Model):
     station_id = db.Column(db.INTEGER, ForeignKey('stations.id'))
     station = db.relationship('StationModel')
 
-    def __init__(self, date, oni, height, temp, time, station_id):
-        self.date = date
+    def __init__(self, year, month, day, oni, height, temp, time, station_id):
+        self.year = year
+        self.month = month
+        self.day = day
         self.oni = oni
         self.height = height
         self.temp = temp
