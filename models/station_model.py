@@ -1,6 +1,8 @@
 from db import db
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, scoped_session, sessionmaker
+
+DBSession = scoped_session(sessionmaker())
 
 
 class StationModel(db.Model):
@@ -50,6 +52,31 @@ class StationData(db.Model):
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
+
+
+class OniData(db.Model):
+
+    __tablename__ = 'adjusted_oni'
+
+    id = db.Column(db.INTEGER, primary_key=True)
+    year = db.Column(db.INTEGER)
+    month = db.Column(db.INTEGER)
+    oni = db.Column(db.INTEGER)
+
+    def __init__(self, year, month, oni):
+        self.year = year
+        self.month = month
+        self.oni = oni
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+
+    @classmethod
+    def find_by_date(cls, year, month):
+        row = db.session.query(cls).filter(OniData.year == year).filter(OniData.month == month).first()
+        oni = row.oni
+        return oni
 
 
 if __name__ == '__main__':
