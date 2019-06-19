@@ -38,13 +38,10 @@ print(df['temperature'])
         time = df['date'][x].strftime("%H")
 
         if test['temperature'][x] and test['height'][x]:
-            station_data = StationData(int(year),
-                                       int(month),
-                                       int(day),
+            station_data = StationData(df['date'][x],
                                        oni,
                                        int(df['height'][x]),
                                        df['temperature'][x],
-                                       int(time),
                                        1)
             station_data.save_to_db()
         x += 1
