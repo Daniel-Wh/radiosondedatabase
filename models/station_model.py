@@ -12,7 +12,7 @@ class StationModel(db.Model):
     name = db.Column(db.String(15))
     lat = db.Column(db.REAL)
     lon = db.Column(db.REAL)
-    children = db.relationship("StationData")
+    children = db.relationship("Launch")
 
     def __init__(self, name, lat, lon):
         self.name = name
@@ -24,24 +24,41 @@ class StationModel(db.Model):
         db.session.commit()
 
 
-class StationData(db.Model):
+class Launch(db.Model):
 
-    __tablename__ = 'station_data'
+    __tablename__ = 'launch'
 
     id = db.Column(db.INTEGER, primary_key=True)
     date = db.Column(db.DateTime)
     oni = db.Column(db.INTEGER)
-    height = db.Column(db.INTEGER)
-    temp = db.Column(db.REAL)
     station_id = db.Column(db.INTEGER, ForeignKey('stations.id'))
     station = db.relationship('StationModel')
+    children = db.relationship('Reading')
 
-    def __init__(self, date, oni, height, temp, station_id):
+    def __init__(self, date, oni, station_id):
         self.date = date
         self.oni = oni
+        self.station_id = station_id
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+
+
+class Reading(db.Model):
+
+    __tablename__ = 'readings'
+
+    id = db.Column(db.INTEGER, primary_key=True)
+    height = db.Column(db.INTEGER)
+    temp = db.Column(db.REAL)
+    launch_id = db.Column(db.INTEGER, ForeignKey('launch.id'))
+    launch = db.relationship('Launch')
+
+    def __init__(self, height, temp, launch_id):
         self.height = height
         self.temp = temp
-        self.station_id = station_id
+        self.launch_id = launch_id
 
     def save_to_db(self):
         db.session.add(self)

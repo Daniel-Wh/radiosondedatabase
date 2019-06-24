@@ -1,6 +1,6 @@
 from datetime import datetime
 from siphon.simplewebservice.igra2 import IGRAUpperAir
-from models.station_model import StationData, StationModel
+from models.station_model import Launch, StationModel
 
 beginning = [datetime(2014, 9, 10, 0), datetime(2014, 9, 11, 0)]
 station = 'USM00072250'
@@ -17,35 +17,34 @@ print(df['temperature'])
 
 ######### Code below used to populate stationdata database ##########
 
-    from datetime import datetime
-    from siphon.simplewebservice.igra2 import IGRAUpperAir
-    from models.station_model import StationData, StationModel, OniData
+from datetime import datetime
+from siphon.simplewebservice.igra2 import IGRAUpperAir
+from models.station_model import Launch, StationModel, OniData, Reading
 
-    beginning = [datetime(2013, 1, 11), datetime(2013, 6, 14)]
-    station = 'USM00072250'
+beginning = [datetime(2013, 1, 11), datetime(2013, 6, 11)]
+station = 'USM00072250'
 
-    df, header = IGRAUpperAir.request_data(beginning, station)
+df, header = IGRAUpperAir.request_data(beginning, station)
 
-    x = 0
-    station = StationModel(station, header['latitude'][0], header['longitude'][0])
-    station.save_to_db()
-    test = df.notnull()
-    while x < len(df['height']):
-        year = df['date'][x].strftime("%Y")
-        month = df['date'][x].strftime("%m")
-        oni = OniData.find_by_date(int(year), int(month))
-        day = df['date'][x].strftime("%d")
-        time = df['date'][x].strftime("%H")
-
-        if test['temperature'][x] and test['height'][x]:
-            station_data = StationData(df['date'][x],
-                                       oni,
-                                       int(df['height'][x]),
-                                       df['temperature'][x],
-                                       1)
-            station_data.save_to_db()
-        x += 1
-
+x = 0
+station = StationModel(station, header['latitude'][0], header['longitude'][0])
+station.save_to_db()
+test = df.notnull()
+date_test = 0
+y = 0
+while x < len(df['height']):
+    year = df['date'][x].strftime("%Y")
+    month = df['date'][x].strftime("%m")
+    oni = OniData.find_by_date(int(year), int(month))
+    if test['temperature'][x] and test['height'][x]:
+        if date_test != df['date'][x]:
+            launch_data = Launch(df['date'][x], oni, 1)
+            launch_data.save_to_db()
+            date_test = df['date'][x]
+            y += 1
+        reading = Reading(int(df['height'][x]), df['temperature'][x], y)
+        reading.save_to_db()
+    x += 1
 
 ###### code used to create initial ONI database #######
 
