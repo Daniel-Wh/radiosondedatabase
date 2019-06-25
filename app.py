@@ -1,6 +1,8 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_restful import Api
+from datetime import datetime
 from models.station_model import Launch, StationModel, OniData
+from dateutil.relativedelta import relativedelta
 import sqlite3
 from db import db
 
@@ -16,39 +18,38 @@ db.init_app(app)
 @app.before_first_request
 def create_tables():
     db.create_all()
-    from datetime import datetime
-    from siphon.simplewebservice.igra2 import IGRAUpperAir
-    from models.station_model import Launch, StationModel, OniData, Reading
-
-    beginning = [datetime(2013, 1, 11), datetime(2013, 6, 11)]
-    station = 'USM00072250'
-
-    df, header = IGRAUpperAir.request_data(beginning, station)
-
-    x = 0
-    station = StationModel(station, header['latitude'][0], header['longitude'][0])
-    station.save_to_db()
-    test = df.notnull()
-    date_test = 0
-    y = 0
-    while x < len(df['height']):
-        year = df['date'][x].strftime("%Y")
-        month = df['date'][x].strftime("%m")
-        oni = OniData.find_by_date(int(year), int(month))
-        if test['temperature'][x] and test['height'][x]:
-            if date_test != df['date'][x]:
-                launch_data = Launch(df['date'][x], oni, 1)
-                launch_data.save_to_db()
-                date_test = df['date'][x]
-                y += 1
-            reading = Reading(int(df['height'][x]), df['temperature'][x], y)
-            reading.save_to_db()
-        x += 1
 
 
 @app.route('/')
 def hello_world():
     return 'Hello World!'
+
+
+@app.route('/vis')
+def bokeh_route():
+    beg_date = datetime(2013, 1, 1, 0)
+    end_date = datetime(2013, 1, 12, 0)
+    readings = Launch.get_readings_by_dates_no_oni(beg_date, end_date, 1)
+    s2readings = Launch.get_readings_by_dates_no_oni(beg_date, end_date, 2)
+    dates = []
+    x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    y = 0
+    print(readings, s2readings)
+    while beg_date != end_date:
+        string_date = beg_date.strftime('%y%m%d')
+        dates.append(string_date)
+        beg_date = beg_date + relativedelta(days=+1)
+        x.append(y)
+        y += 1
+    from bokeh.plotting import figure
+    from bokeh.io import output_file, save
+    from bokeh.models import ColumnDataSource
+    output_file('templates\practice.html')
+    f = figure()
+    f.line(x, readings, color='red')
+    f.line(x, s2readings, color='blue')
+    save(f)
+    return render_template('practice.html')
 
 
 if __name__ == '__main__':

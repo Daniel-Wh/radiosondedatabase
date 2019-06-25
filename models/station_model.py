@@ -1,6 +1,7 @@
 from db import db
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, scoped_session, sessionmaker
+from dateutil.relativedelta import *
 
 DBSession = scoped_session(sessionmaker())
 
@@ -44,6 +45,35 @@ class Launch(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    @classmethod
+    def min_height_by_launch(cls, id__):
+        row = Reading.return_min_height(id__)
+        return row
+
+    @classmethod
+    def get_launch_by_date(cls, date_time, station_id):
+        row = db.session.query(cls).filter(cls.date == date_time).filter(cls.station_id == station_id).first()
+        if row is None:
+            return None
+        return row.id
+
+    @classmethod
+    def get_readings_by_dates_no_oni(cls, begin_date, end_date, station_id):
+        readings = []
+        while begin_date != end_date:
+            id_ = Launch.get_launch_by_date(begin_date, station_id)
+            if id_ is None:
+                print("no value on {} for station {}".format(begin_date, station_id))
+                begin_date = begin_date + relativedelta(days=1)
+            else:
+                print(id_)
+                reading = Launch.min_height_by_launch(id_)
+                readings.append(reading)
+                begin_date = begin_date + relativedelta(days=1)
+
+        print(begin_date, end_date)
+        return readings
+
 
 class Reading(db.Model):
 
@@ -63,6 +93,18 @@ class Reading(db.Model):
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
+
+    @classmethod
+    def return_min_height(cls, launch_id):
+        rows = db.session.query(cls).filter(cls.launch_id == launch_id)
+        height = 0
+        temp = 0
+        for row in rows:
+            if row.temp < temp:
+                temp = row.temp
+                height = row.height
+
+        return height
 
 
 class OniData(db.Model):
