@@ -18,6 +18,9 @@ db.init_app(app)
 @app.before_first_request
 def create_tables():
     db.create_all()
+    station_2_readings = Launch.get_readings_by_dates_no_oni(datetime(2013, 1, 1, 12), datetime(2013, 12, 31, 12), 2)
+    print(len(station_2_readings))
+
 
 
 @app.route('/')
@@ -27,28 +30,29 @@ def hello_world():
 
 @app.route('/vis')
 def bokeh_route():
-    beg_date = datetime(2013, 1, 1, 0)
-    end_date = datetime(2013, 1, 12, 0)
-    readings = Launch.get_readings_by_dates_no_oni(beg_date, end_date, 1)
-    s2readings = Launch.get_readings_by_dates_no_oni(beg_date, end_date, 2)
+    begin_date = datetime(2013, 1, 1, 12)
+    end_date = datetime(2013, 12, 31, 12)
     dates = []
-    x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-    y = 0
-    print(readings, s2readings)
-    while beg_date != end_date:
-        string_date = beg_date.strftime('%y%m%d')
-        dates.append(string_date)
-        beg_date = beg_date + relativedelta(days=+1)
-        x.append(y)
-        y += 1
+    while begin_date != end_date:
+        dates.append(begin_date)
+        begin_date = begin_date + relativedelta(days=+1)
+
+    station_1_readings = Launch.get_readings_by_dates_no_oni(datetime(2013, 1, 1, 12), datetime(2013, 12, 31, 12), 1)
+    #station_2_readings = Launch.get_readings_by_dates_no_oni(datetime(2013, 1, 1, 12), datetime(2013, 12, 31, 12), 2)
+
     from bokeh.plotting import figure
     from bokeh.io import output_file, save
     from bokeh.models import ColumnDataSource
+
+    chart_data = {
+        'date': dates,
+        'y1': station_1_readings
+    }
     output_file('templates\practice.html')
-    f = figure()
-    f.line(x, readings, color='red')
-    f.line(x, s2readings, color='blue')
-    save(f)
+    source = ColumnDataSource(chart_data)
+    line = figure(plot_width=1200, plot_height=1000, x_axis_type='datetime')
+    line.line(source=source, y='y1', x='date', color='blue')
+    save(line)
     return render_template('practice.html')
 
 

@@ -2,6 +2,7 @@ from db import db
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 from dateutil.relativedelta import *
+from datetime import datetime
 
 DBSession = scoped_session(sessionmaker())
 
@@ -63,16 +64,41 @@ class Launch(db.Model):
         while begin_date != end_date:
             id_ = Launch.get_launch_by_date(begin_date, station_id)
             if id_ is None:
-                print("no value on {} for station {}".format(begin_date, station_id))
+                new_reading = Launch.get_monthly_average(begin_date, station_id)
+                readings.append(new_reading)
                 begin_date = begin_date + relativedelta(days=1)
             else:
-                print(id_)
                 reading = Launch.min_height_by_launch(id_)
+                if reading < 14000:
+                    print("Anomaly on {} Tropopause height: {}".format(begin_date, reading)) #still need to fix
+                    print(id_)
                 readings.append(reading)
                 begin_date = begin_date + relativedelta(days=1)
-
-        print(begin_date, end_date)
         return readings
+
+    @classmethod
+    def get_monthly_average(cls, missing_date, station_id):
+        readings = []
+        date = datetime(missing_date.year, missing_date.month, 1)
+        end_date = date + relativedelta(days=+1, months=+1)
+        print(date, end_date)
+        print('Average called')
+        while date != end_date:
+            id_ = Launch.get_launch_by_date(date, station_id)
+            if id_ is None:
+                print('skip')
+                date = date + relativedelta(days=+1)
+            else:
+                reading = Launch.min_height_by_launch(id_)
+                readings.append(reading)
+                print(reading)
+                date = date + relativedelta(days=+1)
+        new_date = datetime(missing_date.year, missing_date.month, 1)
+        new_average = MonthlyAverages(new_date, (sum(readings)/len(readings)), station_id)
+        new_average.save_to_db()
+        average = sum(readings)/len(readings)
+        print('average for {}/{} is {}'.format(missing_date.year, missing_date.month, average))
+        return average
 
 
 class Reading(db.Model):
@@ -130,6 +156,25 @@ class OniData(db.Model):
         row = db.session.query(cls).filter(OniData.year == year).filter(OniData.month == month).first()
         oni = row.oni
         return oni
+
+
+class MonthlyAverages(db.Model):
+    __tablename__ = 'monthly'
+
+    id = db.Column(db.INTEGER, primary_key=True)
+    date = db.Column(db.DateTime)
+    average = db.Column(db.REAL)
+    station_id = db.Column(db.INTEGER, ForeignKey('stations.id'))
+    parent = db.relationship("StationModel")
+
+    def __init__(self, date, average, station_id):
+        self.date = date
+        self.average = average
+        self.station_id = station_id
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
 
 
 if __name__ == '__main__':

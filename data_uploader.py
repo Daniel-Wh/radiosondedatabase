@@ -17,6 +17,8 @@ print(df['temperature'])
 
 ######### Code below used to populate stationdata database ##########
 
+
+def data_uploader():
     from datetime import datetime
     from siphon.simplewebservice.igra2 import IGRAUpperAir
     from models.station_model import Launch, StationModel, OniData, Reading
