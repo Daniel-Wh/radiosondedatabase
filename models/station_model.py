@@ -59,21 +59,36 @@ class Launch(db.Model):
         return row.id
 
     @classmethod
+    def get_launch_by_date_with_oni(cls, date_time, station_id, oni):
+        row = db.session.query(cls).filter(cls.date == date_time).filter(cls.station_id == station_id).filter(cls.oni == oni).first()
+        if row is None:
+            return None
+        return row.id
+
+    @classmethod
     def get_readings_by_dates_no_oni(cls, begin_date, end_date, station_id):
         readings = []
         while begin_date != end_date:
             id_ = Launch.get_launch_by_date(begin_date, station_id)
             if id_ is None:
-                new_reading = Launch.get_monthly_average(begin_date, station_id)
+                new_reading = MonthlyAverages.get_average_by_date(begin_date, station_id)
                 readings.append(new_reading)
                 begin_date = begin_date + relativedelta(days=1)
             else:
                 reading = Launch.min_height_by_launch(id_)
                 if reading < 14000:
-                    print("Anomaly on {} Tropopause height: {}".format(begin_date, reading)) #still need to fix
-                    print(id_)
+                    reading = MonthlyAverages.get_average_by_date(begin_date, station_id)
                 readings.append(reading)
                 begin_date = begin_date + relativedelta(days=1)
+        return readings
+
+    @classmethod
+    def get_readings_by_date_with_oni(cls, dates_list, station_id, oni):
+        readings = []
+        for date in dates_list:
+            id_ = Launch.get_launch_by_date_with_oni(date, station_id, oni)
+            reading = Launch.min_height_by_launch(id_)
+            readings.append(reading)
         return readings
 
     @classmethod
@@ -94,11 +109,23 @@ class Launch(db.Model):
                 print(reading)
                 date = date + relativedelta(days=+1)
         new_date = datetime(missing_date.year, missing_date.month, 1)
-        new_average = MonthlyAverages(new_date, (sum(readings)/len(readings)), station_id)
+        average = sum(readings) / len(readings)
+        new_average = MonthlyAverages(new_date, average, station_id)
         new_average.save_to_db()
-        average = sum(readings)/len(readings)
         print('average for {}/{} is {}'.format(missing_date.year, missing_date.month, average))
         return average
+
+    @classmethod
+    def get_oni_launch_dates(cls, begin_date, end_date, oni):
+        dates = []
+        while begin_date != end_date:
+            row = db.session.query(cls).filter(cls.date == begin_date).filter(cls.oni == oni).first()
+            if row is None:
+                begin_date = begin_date + relativedelta(days=+1)
+            else:
+                dates.append(row.date)
+                begin_date = begin_date + relativedelta(days=+1)
+        return dates
 
 
 class Reading(db.Model):
@@ -175,6 +202,16 @@ class MonthlyAverages(db.Model):
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
+
+    @classmethod
+    def get_average_by_date(cls, date_time, station_id):
+        date = date_time + relativedelta(day=1)
+        row = db.session.query(cls).filter(cls.date == date).filter(cls.station_id == station_id).first()
+        if row is None:
+            reading = Launch.get_monthly_average(date, station_id)
+            return reading
+        else:
+            return row.average
 
 
 if __name__ == '__main__':
