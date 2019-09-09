@@ -7,6 +7,28 @@ from datetime import datetime
 DBSession = scoped_session(sessionmaker())
 
 
+class JustReadings(db.Model):
+    # create new table for just the readings (elevation at lowest temp) that will be used in visualizations
+    __tablename__ = 'just_readings'
+    # id will be primary key(unique)
+    id = db.Column(db.Integer, primary_key=True)
+    # station is stored as string with no more than 12 characters
+    station = db.Column(db.String(12))
+    # date is stored as DateTime format which is how it comes from siphon
+    date = db.Column(db.DateTime)
+    # elevation at lowest temperature for this launch
+    height = db.Column(db.Integer)
+    
+    def __init__(self, station, date, reading):
+        self.station = station
+        self.station = date
+        self.reading = reading
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+
+
 class StationModel(db.Model):
 
     __tablename__ = 'stations'
