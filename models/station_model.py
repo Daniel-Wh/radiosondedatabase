@@ -12,17 +12,20 @@ class JustReadings(db.Model):
     __tablename__ = 'just_readings'
     # id will be primary key(unique)
     id = db.Column(db.Integer, primary_key=True)
-    # station is stored as string with no more than 12 characters
-    station = db.Column(db.String(12))
+    # station is stored as string with no more than 11 characters
+    station = db.Column(db.String(11))
     # date is stored as DateTime format which is how it comes from siphon
     date = db.Column(db.DateTime)
     # elevation at lowest temperature for this launch
     height = db.Column(db.Integer)
-    
-    def __init__(self, station, date, reading):
-        self.station = station
-        self.station = date
-        self.reading = reading
+    # Oceanic Nino Index, needed for grouping data
+    oni = db.Column(db.Integer)
+
+    def __init__(self, station_name, date, reading, oni):
+        self.station = station_name
+        self.date = date
+        self.height = reading
+        self.oni = oni
 
     def save_to_db(self):
         db.session.add(self)

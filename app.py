@@ -2,7 +2,7 @@ from flask import Flask, render_template
 from flask_restful import Api
 from datetime import datetime
 from models.station_model import Launch, StationModel, OniData
-from data_uploader import data_uploader
+from data_uploader import data_uploader, updated_data_uploader
 from dateutil.relativedelta import relativedelta
 import sqlite3
 from db import db
@@ -19,7 +19,7 @@ db.init_app(app)
 @app.before_first_request
 def create_tables():
     db.create_all()
-    # data_uploader()
+    updated_data_uploader()
 
 
 @app.route('/')
