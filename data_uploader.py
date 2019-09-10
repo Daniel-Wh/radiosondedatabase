@@ -43,36 +43,55 @@ def updated_data_uploader():
     y = 0
     stations = ['USM00072250']
     while z < len(stations):
-        beginning = [datetime(2000, 1, 1), datetime(2001, 12, 31)]
+        beginning = [datetime(2010, 1, 1), datetime(2015, 1, 1)]
         station_name = str(stations[z])
+        # api request for igra2 data
         df, header = IGRAUpperAir.request_data(beginning, station_name)
-        print(header)
         x = 0
         # creates a matching dataframe with boolean values representing if the index is null
-        df.dropna(subset=['height'])
         test_for_null = df.notnull()
+        # drops nan values
+        df.dropna(subset=['height'])
 
+        # initializes at first date before loop, is adjusted through out loop for every station
         date = df['date'][1]
+        # initialize empty list that will hold temperature values used later to determine
         temperatures = []
-        oni = 0
         while x < len(df['height']):
-            # tests to make sure the values in the dataframe are not null
+            # tests to make sure the values in the dataframe are not null before adding anything to list
             if test_for_null['temperature'][x] and test_for_null['height'][x]:
+                # adds current temperature to list
                 temperatures.append(float(df['temperature'][[x]]))
+                # while the date is the same as it was previously initialized temperature records are stored in the
+                # temps list for further use in determining the altitude at which the temperature is the lowest
+                # the if statement below checks for when all the temperature records for a particular date have been
+                # recorded.
                 if date != df['date'][x]:
+                    # set the new date
                     date = df['date'][x]
-                    print("found lowest point in temp for day: ".format(df['date'][x-1]))
+                    # the below statements are used to convert the date from the dataframe which is a timestamp object
+                    # to a datetime object. DateTime is required to use relativeDelta which is needed for iteration by
+                    # date at a later time
                     for_reading_year = df['date'][x-1].strftime("%Y")
                     for_reading_month = df['date'][x-1].strftime("%m")
                     for_reading_day = df['date'][x-1].strftime("%d")
                     for_reading_hour = df['date'][x-1].strftime("%H")
+                    # the below method call returns the oceanic nino index for the current month/year
                     oni = OniData.find_by_date(int(for_reading_year), int(for_reading_month))
+                    # initialize datetime object
                     date_for_reading = datetime(int(for_reading_year), int(for_reading_month),
                                                 int(for_reading_day), int(for_reading_hour))
+                    # determines the index of the lowest temperature in the temperatures list
+                    # the length of temperatures - the index of the min temperature minus - 1 because the current
+                    # position is 1 over
                     min_temp = len(temperatures) - temperatures.index(min(temperatures)) - 1
+                    # determines the elevation as the lowest temp
                     elevation_value = df['height'][x - min_temp]
+                    # instantiates reading object
                     reading = JustReadings('USM00072250', date_for_reading, elevation_value, oni)
+                    # saves reading object to database
                     reading.save_to_db()
+                    # clears temp list
                     temperatures = []
             x += 1
         z += 1
