@@ -31,6 +31,27 @@ class JustReadings(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    @classmethod
+    def get_readings_no_oni(cls, begin_date, end_date, station_name):
+        # because relative delta offers an increase in each iteration by day, the method will isolate
+        # values by launch hou
+        return -1
+
+    @classmethod
+    def create_monthly_averages(cls):
+        # create monthly averages and save in separate table for future use
+        return -1
+
+    @classmethod
+    def get_readings_by_season(cls):
+        # isolate readings for given season
+        return -1
+
+    @classmethod
+    def get_readings_with_oni(cls, begin_date, end_date, station_name, oni):
+        # isolate readings by station and oceanic nino index
+        return -1
+
 
 class StationModel(db.Model):
 
