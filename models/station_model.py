@@ -32,10 +32,18 @@ class JustReadings(db.Model):
         db.session.commit()
 
     @classmethod
-    def get_readings_no_oni(cls, begin_date, end_date, station_name):
+    def get_readings_no_oni(cls, station_name, begin_date, end_date):
+        readings = []
+        while begin_date != end_date:
+            row = db.session.query(cls).filter(cls.date == begin_date).filter(cls.station == station_name).first()
+            if row is None:
+                print('skip')
+            else:
+                readings.append(row.height)
+            begin_date = begin_date + relativedelta(days=1)
         # because relative delta offers an increase in each iteration by day, the method will isolate
         # values by launch hou
-        return -1
+        return readings
 
     @classmethod
     def create_monthly_averages(cls):
@@ -50,6 +58,36 @@ class JustReadings(db.Model):
     @classmethod
     def get_readings_with_oni(cls, begin_date, end_date, station_name, oni):
         # isolate readings by station and oceanic nino index
+        return -1
+
+
+class UpdatedMonthly:
+    # creating class/table for monthly averages by station
+    __tablename__ = 'UpdatedMonthly'
+    id = db.Column(db.Integer, primary_key=True)
+    # station name
+    station = db.Column(db.String(11))
+    # date - will only every b year/month/hour to separate 00/12 hour launches
+    date = db.Column(db.DateTime)
+    # average for that month at 00/12 hour
+    height_average = db.Column(db.Integer)
+    # oceanic nino index for that month
+    oni = db.Column(db.Integer)
+
+    def __init__(self, station_name, year_month, average, oni):
+        self.station = station_name
+        self.date = year_month
+        self.height_average = average
+        self.oni = oni
+
+    @classmethod
+    def get_monthly_average_no_oni(cls, station_name, date):
+        # created method for future construction
+        return -1
+
+    @classmethod
+    def get_monthly_average_w_oni(cls, station_name, date, oni):
+        # created method for future construction
         return -1
 
 
@@ -264,3 +302,4 @@ if __name__ == '__main__':
     from app import app
     db.init_app(app)
     db.create_all()
+

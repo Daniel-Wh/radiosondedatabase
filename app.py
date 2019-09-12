@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 from flask_restful import Api
 from datetime import datetime
-from models.station_model import Launch, StationModel, OniData
+from models.station_model import Launch, StationModel, OniData, JustReadings
 from data_uploader import data_uploader, updated_data_uploader
 from dateutil.relativedelta import relativedelta
 import sqlite3
@@ -19,7 +19,16 @@ db.init_app(app)
 @app.before_first_request
 def create_tables():
     db.create_all()
-    updated_data_uploader()
+    begin_date = datetime(1999, 1, 1, 0)
+    end_date = datetime(2002, 1, 1, 0)
+    station = 'USM00072250'
+    # updated_data_uploader(station, begin_date, end_date)
+    readings = JustReadings.get_readings_no_oni(station_name=station, begin_date=begin_date, end_date=end_date)
+    for x in readings:
+        print(x)
+    print(len(readings))
+
+
 
 
 @app.route('/')

@@ -37,15 +37,15 @@ def data_uploader():
         z += 1
 
 
-def updated_data_uploader():
+def updated_data_uploader(station, begin_date, end_date):
     global date_for_reading
     z = 0
     y = 0
-    stations = ['USM00072250']
+    stations = [station]
     while z < len(stations):
-        beginning = [datetime(2010, 1, 1), datetime(2015, 1, 1)]
+        beginning = [begin_date, end_date]
         station_name = str(stations[z])
-        # api request for igra2 data
+        # api request for igra2 data, returns pandas data frame stored in df, header contains header info
         df, header = IGRAUpperAir.request_data(beginning, station_name)
         x = 0
         # creates a matching dataframe with boolean values representing if the index is null
@@ -61,7 +61,9 @@ def updated_data_uploader():
             # tests to make sure the values in the dataframe are not null before adding anything to list
             if test_for_null['temperature'][x] and test_for_null['height'][x]:
                 # adds current temperature to list
-                temperatures.append(float(df['temperature'][[x]]))
+                temp = df['temperature'][x]
+                temperatures.append(temp)
+                print("{} temp for day: {}".format(temp, df['date'][x].strftime("%Y, %m, %d")))
                 # while the date is the same as it was previously initialized temperature records are stored in the
                 # temps list for further use in determining the altitude at which the temperature is the lowest
                 # the if statement below checks for when all the temperature records for a particular date have been
@@ -72,11 +74,11 @@ def updated_data_uploader():
                     # the below statements are used to convert the date from the dataframe which is a timestamp object
                     # to a datetime object. DateTime is required to use relativeDelta which is needed for iteration by
                     # date at a later time
-                    for_reading_year = df['date'][x-1].strftime("%Y")
-                    for_reading_month = df['date'][x-1].strftime("%m")
-                    for_reading_day = df['date'][x-1].strftime("%d")
-                    for_reading_hour = df['date'][x-1].strftime("%H")
-                    # the below method call returns the oceanic nino index for the current month/year
+                    for_reading_year = df['date'][x-2].strftime("%Y")
+                    for_reading_month = df['date'][x-2].strftime("%m")
+                    for_reading_day = df['date'][x-2].strftime("%d")
+                    for_reading_hour = df['date'][x-2].strftime("%H")
+                    # the below method call returns the oceanic nino index for the current month/year (either -1, 0, 1)
                     oni = OniData.find_by_date(int(for_reading_year), int(for_reading_month))
                     # initialize datetime object
                     date_for_reading = datetime(int(for_reading_year), int(for_reading_month),
@@ -93,6 +95,7 @@ def updated_data_uploader():
                     reading.save_to_db()
                     # clears temp list
                     temperatures = []
+
             x += 1
         z += 1
 
