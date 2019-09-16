@@ -59,7 +59,7 @@ def updated_data_uploader(station, begin_date, end_date):
         temperatures = []
         while x < len(df['height']):
             # tests to make sure the values in the dataframe are not null before adding anything to list
-            if test_for_null['temperature'][x] and test_for_null['height'][x]:
+            if test_for_null['temperature'][x] or test_for_null['height'][x]:
                 # adds current temperature to list
                 temp = df['temperature'][x]
                 temperatures.append(temp)
@@ -74,10 +74,10 @@ def updated_data_uploader(station, begin_date, end_date):
                     # the below statements are used to convert the date from the dataframe which is a timestamp object
                     # to a datetime object. DateTime is required to use relativeDelta which is needed for iteration by
                     # date at a later time
-                    for_reading_year = df['date'][x-2].strftime("%Y")
-                    for_reading_month = df['date'][x-2].strftime("%m")
-                    for_reading_day = df['date'][x-2].strftime("%d")
-                    for_reading_hour = df['date'][x-2].strftime("%H")
+                    for_reading_year = df['date'][x-1].strftime("%Y")
+                    for_reading_month = df['date'][x-1].strftime("%m")
+                    for_reading_day = df['date'][x-1].strftime("%d")
+                    for_reading_hour = df['date'][x-1].strftime("%H")
                     # the below method call returns the oceanic nino index for the current month/year (either -1, 0, 1)
                     oni = OniData.find_by_date(int(for_reading_year), int(for_reading_month))
                     # initialize datetime object
@@ -86,7 +86,8 @@ def updated_data_uploader(station, begin_date, end_date):
                     # determines the index of the lowest temperature in the temperatures list
                     # the length of temperatures - the index of the min temperature minus - 1 because the current
                     # position is 1 over
-                    min_temp = len(temperatures) - temperatures.index(min(temperatures)) - 1
+                    x -= 1
+                    min_temp = len(temperatures) - temperatures.index(min(temperatures))
                     # determines the elevation as the lowest temp
                     elevation_value = df['height'][x - min_temp]
                     # instantiates reading object

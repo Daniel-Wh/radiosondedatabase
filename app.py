@@ -19,10 +19,10 @@ db.init_app(app)
 @app.before_first_request
 def create_tables():
     db.create_all()
-    begin_date = datetime(1999, 1, 1, 0)
-    end_date = datetime(2002, 1, 1, 0)
+    begin_date = datetime(2000, 1, 1, 0)
+    end_date = datetime(2005, 1, 1, 0)
     station = 'USM00072250'
-    # updated_data_uploader(station, begin_date, end_date)
+    updated_data_uploader(station, begin_date, end_date)
     readings = JustReadings.get_readings_no_oni(station_name=station, begin_date=begin_date, end_date=end_date)
     for x in readings:
         print(x)
