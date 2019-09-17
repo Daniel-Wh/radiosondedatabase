@@ -16,13 +16,13 @@ api = Api(app)
 db.init_app(app)
 
 
-# @app.before_first_request
+@app.before_first_request
 def create_tables():
     db.create_all()
-    begin_date = datetime(2000, 1, 1, 12)
-    end_date = datetime(2005, 1, 1, 12)
-    station = 'USM00072250'
-    # updated_data_uploader(station, begin_date, end_date)
+    begin_date = datetime(2000, 1, 1)
+    end_date = datetime(2005, 1, 1)
+    station = 'USM00072201'
+    updated_data_uploader(station=station, begin_date=begin_date, end_date=end_date)
     # readings = JustReadings.get_readings_no_oni(station_name=station, begin_date=begin_date, end_date=end_date)
     readings = []
     while begin_date != end_date:
