@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 from flask_restful import Api
 from datetime import datetime
-from models.station_model import Launch, StationModel, OniData, JustReadings
+from models.station_model import Launch, StationModel, OniData, JustReadings, UpdatedMonthly
 from data_uploader import data_uploader, updated_data_uploader
 from dateutil.relativedelta import relativedelta
 import sqlite3
@@ -16,19 +16,21 @@ api = Api(app)
 db.init_app(app)
 
 
-@app.before_first_request
+# @app.before_first_request
 def create_tables():
     db.create_all()
-    begin_date = datetime(2000, 1, 1, 0)
-    end_date = datetime(2005, 1, 1, 0)
+    begin_date = datetime(2000, 1, 1, 12)
+    end_date = datetime(2005, 1, 1, 12)
     station = 'USM00072250'
-    updated_data_uploader(station, begin_date, end_date)
-    readings = JustReadings.get_readings_no_oni(station_name=station, begin_date=begin_date, end_date=end_date)
+    # updated_data_uploader(station, begin_date, end_date)
+    # readings = JustReadings.get_readings_no_oni(station_name=station, begin_date=begin_date, end_date=end_date)
+    readings = []
+    while begin_date != end_date:
+        readings.append(JustReadings.create_monthly_averages(missing_date=begin_date, station_name=station))
+        begin_date = begin_date + relativedelta(months=+1)
     for x in readings:
         print(x)
     print(len(readings))
-
-
 
 
 @app.route('/')
@@ -38,19 +40,21 @@ def hello_world():
 
 @app.route('/vis')
 def bokeh_route():
-    begin_date = datetime(2000, 1, 1, 12)
-    end_date = datetime(2010, 12, 31, 12)
+    begin_date = datetime(2000, 1, 1, 0)
+    end_date = datetime(2005, 1, 1, 0)
+    station = 'USM00072250'
     # dates = Launch.get_oni_launch_dates(begin_date, end_date, 0)
     # print(len(dates))
-    s1readings = Launch.get_readings_by_dates_no_oni(begin_date, end_date, 1)
+    # s1readings = Launch.get_readings_by_dates_no_oni(begin_date, end_date, 1)
     dates = []
+    s1readings = []
     while begin_date != end_date:
         dates.append(begin_date)
-        begin_date = begin_date + relativedelta(days=+1)
+        reading = UpdatedMonthly.get_monthly_average_no_oni(date=begin_date, station_name=station)
+        s1readings.append(reading)
+        begin_date = begin_date + relativedelta(months=+1)
     # s2readings = Launch.get_readings_by_date_with_oni(dates, 2, 0)
-    print(len(s1readings))
-
-    #nprint(len(s2readings))
+    # print(len(s2readings))
 
     # station_1_readings = Launch.get_readings_by_dates_no_oni(datetime(2013, 1, 1, 0), datetime(2013, 12, 31, 0), 1)
     # station_2_readings = Launch.get_readings_by_dates_no_oni(datetime(2013, 1, 1, 0), datetime(2013, 12, 31, 0), 2)

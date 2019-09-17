@@ -46,9 +46,34 @@ class JustReadings(db.Model):
         return readings
 
     @classmethod
-    def create_monthly_averages(cls):
-        # create monthly averages and save in separate table for future use
-        return -1
+    def create_monthly_averages(cls, missing_date, station_name):
+        # initialize empty list for readings
+        readings = []
+        # creates new date starting on the first of the month for the given missing date
+        date = datetime(missing_date.year, missing_date.month, 1, missing_date.hour)
+        # end date for while loop that is one month and one day to capture the full month of data
+        end_date = date + relativedelta(days=+1, months=+1)
+        while date != end_date:
+            # queries row in database - skips if none, appends height to reading list to find average later
+            row = db.session.query(cls).filter(cls.date == date).filter(cls.station == station_name).first()
+            if row is None:
+                date = date + relativedelta(days=+1)
+                print('Skip')
+            elif row.height is None:
+                date = date + relativedelta(days=+1)
+                print('Skip')
+            else:
+                readings.append(row.height)
+                date = date + relativedelta(days=+1)
+
+        year_month = datetime(missing_date.year, missing_date.month, 1, missing_date.hour)
+        average = round(sum(readings)/len(readings), 0)
+        print('Average for year {}/{} is {}'.format(year_month.year, year_month.day, average))
+        for_db = UpdatedMonthly(station_name=station_name, average=average, year_month=year_month,
+                                oni=OniData.find_by_date(missing_date.year, missing_date.month))
+        for_db.save_to_db()
+
+        return average
 
     @classmethod
     def get_readings_by_season(cls):
@@ -61,7 +86,7 @@ class JustReadings(db.Model):
         return -1
 
 
-class UpdatedMonthly:
+class UpdatedMonthly(db.Model):
     # creating class/table for monthly averages by station
     __tablename__ = 'UpdatedMonthly'
     id = db.Column(db.Integer, primary_key=True)
@@ -82,13 +107,21 @@ class UpdatedMonthly:
 
     @classmethod
     def get_monthly_average_no_oni(cls, station_name, date):
-        # created method for future construction
-        return -1
+        for_query_date = datetime(date.year, date.month, 1, date.hour)
+        row = db.session.query(cls).filter(cls.station == station_name).filter(cls.date == for_query_date).first()
+        if row is None:
+            return -1
+
+        return row.height_average
 
     @classmethod
     def get_monthly_average_w_oni(cls, station_name, date, oni):
         # created method for future construction
         return -1
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
 
 
 class StationModel(db.Model):
