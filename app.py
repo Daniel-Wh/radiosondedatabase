@@ -16,7 +16,7 @@ api = Api(app)
 db.init_app(app)
 
 
-# @app.before_first_request
+# git @app.before_first_request
 def create_tables():
     db.create_all()
     begin_date = datetime(1985, 1, 1, 12)
