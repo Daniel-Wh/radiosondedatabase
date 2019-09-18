@@ -67,11 +67,13 @@ class JustReadings(db.Model):
                 date = date + relativedelta(days=+1)
 
         year_month = datetime(missing_date.year, missing_date.month, 1, missing_date.hour)
-        average = round(sum(readings)/len(readings), 0)
-        print('Average for year {}/{} is {}'.format(year_month.year, year_month.day, average))
-        for_db = UpdatedMonthly(station_name=station_name, average=average, year_month=year_month,
-                                oni=OniData.find_by_date(missing_date.year, missing_date.month))
-        for_db.save_to_db()
+        average = 0
+        if len(readings) > 0:
+            average = round(sum(readings)/len(readings), 0)
+            print('Average for year {}/{} is {}'.format(year_month.year, year_month.day, average))
+            for_db = UpdatedMonthly(station_name=station_name, average=average, year_month=year_month,
+                                    oni=OniData.find_by_date(missing_date.year, missing_date.month))
+            for_db.save_to_db()
 
         return average
 

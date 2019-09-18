@@ -63,7 +63,7 @@ def updated_data_uploader(station, begin_date, end_date):
                 # adds current temperature to list
                 temp = df['temperature'][x]
                 temperatures.append(temp)
-                print("{} temp for day: {}".format(temp, df['date'][x].strftime("%Y, %m, %d")))
+                # print("{} temp for day: {}".format(temp, df['date'][x].strftime("%Y, %m, %d")))
                 # while the date is the same as it was previously initialized temperature records are stored in the
                 # temps list for further use in determining the altitude at which the temperature is the lowest
                 # the if statement below checks for when all the temperature records for a particular date have been
@@ -91,7 +91,7 @@ def updated_data_uploader(station, begin_date, end_date):
                     # determines the elevation as the lowest temp
                     elevation_value = df['height'][x - min_temp]
                     # instantiates reading object
-                    reading = JustReadings('USM00072250', date_for_reading, elevation_value, oni)
+                    reading = JustReadings(station_name, date_for_reading, elevation_value, oni)
                     # saves reading object to database
                     reading.save_to_db()
                     # clears temp list
