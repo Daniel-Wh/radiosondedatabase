@@ -16,13 +16,13 @@ api = Api(app)
 db.init_app(app)
 
 
-@app.before_first_request
+# @app.before_first_request
 def create_tables():
     db.create_all()
-    begin_date = datetime(2000, 1, 1)
-    end_date = datetime(2005, 1, 1)
+    begin_date = datetime(1985, 1, 1, 12)
+    end_date = datetime(2000, 1, 1, 12)
     station = 'USM00072201'
-    updated_data_uploader(station=station, begin_date=begin_date, end_date=end_date)
+    # updated_data_uploader(station=station, begin_date=begin_date, end_date=end_date)
     # readings = JustReadings.get_readings_no_oni(station_name=station, begin_date=begin_date, end_date=end_date)
     readings = []
     while begin_date != end_date:
@@ -40,9 +40,9 @@ def hello_world():
 
 @app.route('/vis')
 def bokeh_route():
-    begin_date = datetime(2000, 1, 1, 0)
+    begin_date = datetime(1990, 1, 1, 0)
     end_date = datetime(2005, 1, 1, 0)
-    station = 'USM00072250'
+    station = 'USM00072201'
     # dates = Launch.get_oni_launch_dates(begin_date, end_date, 0)
     # print(len(dates))
     # s1readings = Launch.get_readings_by_dates_no_oni(begin_date, end_date, 1)
@@ -69,7 +69,7 @@ def bokeh_route():
     }
     output_file('templates\practice.html')
     source = ColumnDataSource(chart_data)
-    line = figure(plot_width=1600, plot_height=800, x_axis_type='datetime')
+    line = figure(plot_width=1000, plot_height=800, x_axis_type='datetime')
     line.line(y='y1', x='date', color='blue', source=source)
     save(line)
     return render_template('practice.html')
