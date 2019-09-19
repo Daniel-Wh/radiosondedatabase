@@ -16,7 +16,7 @@ api = Api(app)
 db.init_app(app)
 
 
-# git @app.before_first_request
+@app.before_first_request
 def create_tables():
     db.create_all()
     begin_date = datetime(1985, 1, 1, 12)
@@ -40,8 +40,8 @@ def hello_world():
 
 @app.route('/vis')
 def bokeh_route():
-    begin_date = datetime(1990, 1, 1, 0)
-    end_date = datetime(2005, 1, 1, 0)
+    begin_date = datetime(1985, 1, 1, 12)
+    end_date = datetime(2000, 1, 1, 12)
     station = 'USM00072201'
     # dates = Launch.get_oni_launch_dates(begin_date, end_date, 0)
     # print(len(dates))
