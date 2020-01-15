@@ -8,6 +8,7 @@ Flask==1.0.3
 Flask-JWT==0.3.2
 Flask-RESTful==0.3.7
 Flask-SQLAlchemy==2.4.0
+gunicorn==19.9.0
 idna==2.8
 itsdangerous==1.1.0
 Jinja2==2.10.1
