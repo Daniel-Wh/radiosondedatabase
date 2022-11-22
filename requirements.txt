@@ -16,7 +16,7 @@ MarkupSafe==1.1.1
 numpy==1.16.3
 packaging==19.0
 pandas==0.25.1
-Pillow==8.1.1
+Pillow==9.3.0
 protobuf==3.10.0rc1
 psycopg2==2.8.2
 PyJWT==1.4.2
